@@ -1,4 +1,6 @@
-import { fetchNote } from "@/lib/api/fetchNote";
+"use client";
+
+import { fetchNote } from "../../lib/api";
 
 export default async function NotePage({ params }: { params: { id: string } }) {
   const note = await fetchNote(params.id);
