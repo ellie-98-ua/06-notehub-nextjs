@@ -8,7 +8,7 @@ import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
 import Modal from "@/components/NoteForm/NoteForm";
 import { useDebounce } from "use-debounce";
-import css from "./NotesClient.module.css";
+import css from "./Notes.client.module.css";
 
 interface NotesClientProps {
   initialData: FetchNotesResponse;
