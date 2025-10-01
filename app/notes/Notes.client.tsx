@@ -1,87 +1,52 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
-import { useDebounce } from "use-debounce";
 
+import SearchBox from "@/components/SearchBox/SearchBox";
+import NoteList from "@/components/NoteList/NoteList";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
-import SearchBox from "@/components/SearchBox/SearchBox";
 
 import css from "./Notes.client.module.css";
 
 export default function NotesClient() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-
-  const [page, setPage] = useState(1);
   const [isModalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (debouncedSearch && page !== 1) {
-      setPage(1);
-    }
-  }, [debouncedSearch, page]);
-
   const { data, isLoading, error } = useQuery({
-    queryKey: ["notes", { page, perPage: 12, search: debouncedSearch }],
-    queryFn: () => fetchNotes({ page, perPage: 12, search: debouncedSearch }),
+    queryKey: ["notes", { page: 1, perPage: 12, search: debouncedSearch }],
+    queryFn: () => fetchNotes({ page: 1, perPage: 12, search: debouncedSearch }),
+    staleTime: 1000 * 60,
+    refetchOnMount: false,
   });
-
-  const notes = data?.notes ?? [];
-  const totalPages = data?.totalPages ?? 1;
 
   if (isLoading) return <p>Loading notes...</p>;
   if (error) return <p>Something went wrong</p>;
 
   return (
     <div className={css.container}>
-      {/* Search */}
-      <SearchBox value={search} onChange={setSearch} />
+      {/* Search + Add button */}
+      <div className={css.controls}>
+        <SearchBox value={search} onChange={setSearch} />
+        <button
+          className={css.addButton}
+          onClick={() => setModalOpen(true)}
+        >
+          Create note +
+        </button>
+      </div>
 
       {/* Notes list */}
-      {notes.length > 0 ? (
-        notes.map((note) => (
-          <div key={note.id} className={css.item}>
-            <h2>{note.title}</h2>
-            <p>{note.content}</p>
-          </div>
-        ))
-      ) : (
-        <p>No notes found</p>
-      )}
+      <NoteList notes={data?.notes || []} />
 
-      {/* Пагінація */}
-      {totalPages > 1 && (
-        <div className={css.pagination}>
-          <button
-            disabled={page === 1}
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          >
-            Prev
-          </button>
-          <span>
-            {page} / {totalPages}
-          </span>
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {/* Модалка */}
+      {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
         <NoteForm onClose={() => setModalOpen(false)} />
       </Modal>
-
-      {/* Кнопка відкриття модалки */}
-      <button className={css.openModalBtn} onClick={() => setModalOpen(true)}>
-        Add Note
-      </button>
     </div>
   );
 }
