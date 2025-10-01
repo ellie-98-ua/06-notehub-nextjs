@@ -9,6 +9,7 @@ import SearchBox from "@/components/SearchBox/SearchBox";
 import NoteList from "@/components/NoteList/NoteList";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
+import Pagination from "@/components/Pagination/Pagination";
 
 import css from "./Notes.client.module.css";
 
@@ -30,6 +31,12 @@ export default function NotesClient() {
     refetchOnMount: false,
   });
 
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+
   if (isLoading) return <p>Loading notes...</p>;
   if (error) return <p>Something went wrong</p>;
 
@@ -38,34 +45,22 @@ export default function NotesClient() {
       {/* Search + Add button */}
       <div className={css.controls}>
         <SearchBox value={search} onChange={setSearch} />
-        <button className={css.addButton} onClick={() => setModalOpen(true)}>
+        <button className={css.addButton} onClick={openModal}>
           Create note +
         </button>
       </div>
 
       {/* Notes list */}
-      <NoteList notes={data?.notes || []} />
+      <NoteList notes={notes} />
 
       {/* Pagination */}
-      <div className={css.pagination}>
-        <button
-          disabled={page === 1}
-          onClick={() => setPage((prev) => prev - 1)}
-        >
-          Prev
-        </button>
-        <span>Page {page} of {data?.totalPages || 1}</span>
-        <button
-          disabled={page === data?.totalPages}
-          onClick={() => setPage((prev) => prev + 1)}
-        >
-          Next
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <Pagination page={page} onPageChange={setPage} totalPages={totalPages} />
+      )}
 
       {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
-        <NoteForm onClose={() => setModalOpen(false)} />
+      <Modal isOpen={isModalOpen} onClose={closeModal}>
+        <NoteForm onClose={closeModal} />
       </Modal>
     </div>
   );
