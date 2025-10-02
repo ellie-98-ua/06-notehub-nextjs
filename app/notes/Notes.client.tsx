@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query"; // ✅ додали keepPreviousData
 import { fetchNotes } from "@/lib/api";
 
 import SearchBox from "@/components/SearchBox/SearchBox";
@@ -29,6 +29,7 @@ export default function NotesClient() {
     queryFn: () => fetchNotes({ page, perPage, search: debouncedSearch }),
     staleTime: 1000 * 60,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   });
 
   const notes = data?.notes ?? [];
@@ -42,7 +43,6 @@ export default function NotesClient() {
 
   return (
     <div className={css.container}>
-      {/* Search + Add button */}
       <div className={css.controls}>
         <SearchBox value={search} onChange={setSearch} />
         <button className={css.addButton} onClick={openModal}>
@@ -50,15 +50,12 @@ export default function NotesClient() {
         </button>
       </div>
 
-      {/* Notes list */}
       <NoteList notes={notes} />
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <Pagination page={page} onPageChange={setPage} totalPages={totalPages} />
       )}
 
-      {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <NoteForm onClose={closeModal} />
       </Modal>
